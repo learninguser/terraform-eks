@@ -5,13 +5,16 @@ module "eks" {
   cluster_version = var.kubernetes_version
   subnet_ids      = module.vpc.private_subnets
 
-  enable_irsa = true
+  cluster_endpoint_public_access = true
 
   tags = {
     cluster = "demo"
   }
 
   vpc_id = module.vpc.vpc_id
+
+  # The user which you used to create cluster will get admin access
+  enable_cluster_creator_admin_permissions = true
 
   eks_managed_node_group_defaults = {
     ami_type               = "AL2_x86_64"
@@ -21,11 +24,27 @@ module "eks" {
 
   eks_managed_node_groups = {
 
-    node_group = {
-      min_size     = 2
-      max_size     = 6
-      desired_size = 2
+    blue = {
+      min_size      = 2
+      max_size      = 3
+      desired_size  = 2
+      capacity_type = "SPOT"
+      iam_role_additional_policies = {
+        AmazonEBSCSIDriverPolicy          = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+        AmazonElasticFileSystemFullAccess = "arn:aws:iam::aws:policy/AmazonElasticFileSystemFullAccess"
+      }
     }
+
+    # green = {
+    #   min_size      = 2
+    #   max_size      = 3
+    #   desired_size  = 2
+    #   capacity_type = "SPOT"
+    #   iam_role_additional_policies = {
+    #     AmazonEBSCSIDriverPolicy          = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+    #     AmazonElasticFileSystemFullAccess = "arn:aws:iam::aws:policy/AmazonElasticFileSystemFullAccess"
+    #   }
+    # }
   }
 }
 
